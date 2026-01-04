@@ -1,0 +1,97 @@
+# In chat
+bossbar add timer {"text":"Stopwatch"}
+bossbar set timer max 2
+bossbar set timer players @a
+bossbar set timer value 2
+bossbar set timer color white
+scoreboard objectives add time_t minecraft.custom:minecraft.play_time
+scoreboard objectives add time_s dummy
+scoreboard objectives add time_Ms dummy
+scoreboard objectives add time_m dummy
+scoreboard objectives add time_Mm dummy
+scoreboard objectives add time_h dummy
+scoreboard objectives add const dummy
+scoreboard players set 0 const 0
+scoreboard players set 20 const 20
+scoreboard players set 60 const 60
+scoreboard objectives add res deathCount
+scoreboard players set @a res 0
+team add hunters
+team modify hunters color red
+team modify hunters friendlyFire false
+team modify hunters seeFriendlyInvisibles true
+team add runners
+team modify runners color aqua
+team modify runners friendlyFire false
+team modify runners seeFriendlyInvisibles true
+gamerule commandBlockOutput false
+gamerule locatorBar false
+forceload add ~-50 ~-50 ~50 ~50
+
+# Controller
+execute as @a run scoreboard players operation @s time_s = @s time_t
+execute as @a store result score @s time_m run scoreboard players operation @s time_s /= 20 const
+execute as @a store result score @s time_Ms run scoreboard players get @s time_m
+scoreboard players operation @a time_m /= 60 const
+scoreboard players operation @a time_Ms %= 60 const
+execute as @a store result score @s time_h run scoreboard players get @s time_m
+scoreboard players operation @a time_h /= 60 const
+execute as @a store result score @s time_Mm run scoreboard players get @s time_m
+scoreboard players operation @a time_Mm %= 60 const
+execute if score pause const = 0 const run bossbar set minecraft:timer name ["",{"score":{"name":"@p[tag=t]","objective":"time_h"},"bold":true},{"text":"h:","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Mm"},"bold":true},{"text":"m:","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Ms"},"bold":true},{"text":"s","color":"gray"},{"text":" has passed"}]
+execute if entity @e[tag=t,nbt={Dimension:"minecraft:overworld"}] at @e[tag=t] in overworld run setworldspawn
+execute as @e[type=minecraft:player,team=hunters,scores={res=1..}] run give @s compass
+execute as @e[type=minecraft:player,team=runners,scores={res=1..}] run gamemode spectator @s
+execute as @e[type=minecraft:player,team=runners,scores={res=1..}] run tp @p[team=runners]
+title @a[gamemode=spectator,team=runners] actionbar {"text":"You are now a spectator."}
+scoreboard players set @e[type=player,scores={res=1..}] res 0
+execute if score frozen const = 0 const run effect give @a minecraft:slowness 1 255 true
+execute if score frozen const = 0 const run effect give @a minecraft:blindness 2 255 true
+execute if score frozen const = 0 const run effect give @a minecraft:jump_boost 1 137 true
+execute if score frozen const = 0 const run effect give @a minecraft:regeneration 1 255 true
+execute if score frozen const = 0 const run title @a actionbar {"text":"You are frozen"}
+execute if score running const = 0 const if score @p[tag=t] time_s < headstart const run effect give @a[team=hunters] minecraft:slowness 1 255 true
+execute if score running const = 0 const if score @p[tag=t] time_s < headstart const run effect give @a[team=hunters] minecraft:jump_boost 1 137 true
+execute if score running const = 0 const if score @p[tag=t] time_s < headstart const run effect give @a[team=hunters] minecraft:regeneration 1 255 true
+execute if score running const = 0 const if score @p[tag=t] time_s <= headstart const run title @a[team=hunters] actionbar ["",{"text":"Frozen for "},{"score":{"name":"@p[tag=t]","objective":"time_s"}},{"text":" of "},{"score":{"name":"headstart","objective":"const"}},{"text":" seconds"}]
+execute if score running const = 0 const run execute unless entity @a[team=runners,limit=1,gamemode=survival] run scoreboard players operation pause const = @a time_t
+execute if score running const = 0 const run execute unless entity @a[team=runners,limit=1,gamemode=survival] run title @a subtitle [{"text":"Finished in ","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_h"},"color":"gray"},{"text":" hours, ","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Mm"},"color":"gray"},{"text":" minutes, and ","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Ms"},"color":"gray"},{"text":" seconds","color":"gray"}]
+execute if score running const = 0 const run execute unless entity @a[team=runners,limit=1,gamemode=survival] run title @a title {"text":"Hunters Win","color":"red"}
+execute if score running const = 0 const run execute unless entity @a[team=runners,limit=1,gamemode=survival] run bossbar set timer color red
+execute if score running const = 0 const run execute unless entity @a[team=runners,limit=1,gamemode=survival] run scoreboard players set running const 1
+execute if score running const = 0 const run execute if entity @a[limit=1,team=runners,advancements={minecraft:end/kill_dragon=true}] run scoreboard players operation pause const = @a time_t
+execute if score running const = 0 const run execute if entity @a[limit=1,team=runners,advancements={minecraft:end/kill_dragon=true}] run title @a subtitle [{"text":"Finished in ","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_h"},"color":"gray"},{"text":" hours, ","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Mm"},"color":"gray"},{"text":" minutes, and ","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Ms"},"color":"gray"},{"text":" seconds","color":"gray"}]
+execute if score running const = 0 const run execute if entity @a[limit=1,team=runners,advancements={minecraft:end/kill_dragon=true}] run title @a title {"text":"Runners Win","color":"aqua"}
+execute if score running const = 0 const run execute if entity @a[limit=1,team=runners,advancements={minecraft:end/kill_dragon=true}] run bossbar set timer color blue
+execute if score running const = 0 const run execute if entity @a[limit=1,team=runners,advancements={minecraft:end/kill_dragon=true}] run scoreboard players set running const 1
+bossbar set timer players @a
+execute if score running const = 0 as @a[team=] run gamemode spectator @s
+
+# Manual
+[mangrove_sign] |Join Hunters
+[mangrove_button] team join hunters @p
+
+# Manual
+[warped_sign] |Join Runners
+[warped_button] team join runners @p
+
+# Manual
+[birch_sign] |Track Me
+[birch_button] tag @a remove t
+tag @p add t
+
+# Manual
+[birch_sign] |Add Headstart|30 seconds
+[birch_button] scoreboard players set headstart const 30
+
+# Manual
+[birch_sign] |Start Manhunt
+[birch_button] scoreboard players set @a time_t 0
+scoreboard players set pause const 0
+gamemode survival @a
+execute as @a run spawnpoint
+clear @a
+kill @a[team=hunters]
+effect give @a instant_health 1 255 true
+scoreboard players set running const 0
+bossbar set timer color white

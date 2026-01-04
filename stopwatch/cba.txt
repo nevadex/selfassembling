@@ -1,0 +1,34 @@
+# In chat
+bossbar add timer {"text":"Stopwatch"}
+bossbar set timer max 2
+bossbar set timer players @a
+scoreboard objectives add time_t minecraft.custom:minecraft.play_time
+scoreboard objectives add time_s dummy
+scoreboard objectives add time_Ms dummy
+scoreboard objectives add time_m dummy
+scoreboard objectives add time_Mm dummy
+scoreboard objectives add time_h dummy
+scoreboard objectives add const dummy
+scoreboard players set 0 const 0
+scoreboard players set 20 const 20
+scoreboard players set 60 const 60
+tag @a add t
+scoreboard players set @a time_t 0
+scoreboard players set pause const 0
+forceload add ~-50 ~-50 ~50 ~50
+
+# Controller
+execute as @a run scoreboard players operation @s time_s = @s time_t
+execute as @a store result score @s time_m run scoreboard players operation @s time_s /= 20 const
+execute as @a store result score @s time_Ms run scoreboard players get @s time_m
+scoreboard players operation @a time_m /= 60 const
+scoreboard players operation @a time_Ms %= 60 const
+execute as @a store result score @s time_h run scoreboard players get @s time_m
+scoreboard players operation @a time_h /= 60 const
+execute as @a store result score @s time_Mm run scoreboard players get @s time_m
+scoreboard players operation @a time_Mm %= 60 const
+execute if score pause const = 0 const run bossbar set minecraft:timer name ["",{"score":{"name":"@p[tag=t]","objective":"time_h"},"bold":true},{"text":"h:","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Mm"},"bold":true},{"text":"m:","color":"gray"},{"score":{"name":"@p[tag=t]","objective":"time_Ms"},"bold":true},{"text":"s","color":"gray"},{"text":" has passed"}]
+
+# Manual
+[birch_sign] |Reset Time
+[button] scoreboard players set @a time_t 0
